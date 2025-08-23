@@ -1,0 +1,1 @@
+HÔM NAY IEM XEM THỰC HÀNH KSQLDB NÊN KHÔNG CÓ LOG CHO HÔM NAY HẸ HẸ https://developer.confluent.io/courses/ksqldb/
