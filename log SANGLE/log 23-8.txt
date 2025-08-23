@@ -1,1 +1,2 @@
 HÔM NAY IEM XEM THỰC HÀNH KSQLDB NÊN KHÔNG CÓ LOG CHO HÔM NAY HẸ HẸ https://developer.confluent.io/courses/ksqldb/
+lỗi không nhận được message khi đã insert dữ liệu trên ksqldb controlcenter em đang sửa
