@@ -1,0 +1,29 @@
+24825
+1. Cài đặt ksqlDB cluster
+confluent.controlcenter.connect.Cluster-Test1.cluster=http://localhost:8083
+
+2. Lỗi không nhận dữ liệu từ mysql connect 
+ksql> create TABLE  testsqlmoviedbscore
+>(
+> ScoreID STRING PRIMARY KEY,
+>  ActorID STRING,
+>  popularity double,
+>  vote_avarage double,
+>  vote_count double
+>)
+>WITH (
+>  KAFKA_TOPIC = 'TestSQL.MovieDB.Score',
+>  VALUE_FORMAT = 'JSON',
+>  PARTITIONS = 1
+>);
+dữ liệu từ scoreID vẫn nhận nhưng ở định dạng JSON:
+SELECT * FORM testsqlmoviedbscore EMIT CHANGES;
+
+SCOREID                                |ACTORID                                |POPULARITY                             |VOTE_AVARAGE                           |VOTE_COUNT                             |
++---------------------------------------+---------------------------------------+---------------------------------------+---------------------------------------+---------------------------------------+
+|{"schema":{"type":"struct","fields":[{"|null                                   |null                                   |null                                   |null                                   |
+|type":"int32","optional":false,"field":|                                       |                                       |                                       |                                       |
+|"ScoreID"}],"optional":false,"name":"Te|                                       |                                       |                                       |                                       |
+|stSQL.MovieDB.Score.Key"},"payload":{"S|                                       |                                       |                                       |                                       |
+|coreID":1}}      
+
