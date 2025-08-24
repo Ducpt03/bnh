@@ -1,0 +1,54 @@
+Streaming - Confluent Platform Basic
+*Task1: Đã xong ✅ (cài qua link anh Trung gửi -Install Confluent Platform using Systemd on Ubuntu and Debian)
+
+*Task2: Cấu hình Confluent Server (Kafka) 
+Step1 :Mới xong Controller 
+-Tạo group và cho user cp-kafka vào group
+	sudo groupadd cp-kafka
+	sudo usermod -g cp-kafka cp-kafka
+
+-Tạo thư mục và đặt quyền
+	sudo mkdir -p /data /data/apps/logs
+	sudo chown -R cp-kafka:cp-kafka /data
+
+-Sinh uuid + cài java :))
+	sudo apt update
+	sudo apt install openjdk-17-jdk -y
+	kafka-storage random-uuid (E4NV52WlSiiz68OgNLLDDg)
+
+-Ghi đè file server.properties for Controller (ipv4: 10.0.2.15)
+	cat <<EOF > /etc/kafka/server.properties
+	process.roles=controller
+	node.id=1
+	controller.listener.names=CONTROLLER
+	controller.quorum.voters=1@10.0.2.15:9093,2@10.0.2.16:9093,3@10.0.2.17:9093
+	listeners=CONTROLLER://10.0.2.15:9093
+	log.dirs=/data
+	EOF
+
+-Ghi cluster id vào server.properties vừa sinh ở bước trên
+	kafka-storage format -t E4NV52WlSiiz68OgNLLDDg -c /etc/kafka/server.properties
+Báo lỗi:  Formatting metadata directory /data with confluent.metadata.version 4.0-IV3A.
+Error while writing meta.properties file /data: java.nio.file.AccessDeniedException: /data/bootstrap.checkpoint.tmp
+(đang dùng user hiện tại phải dùng user cp-kafka mới có quyền vào /data)
+	sudo -u cp-kafka kafka-storage format -t E4NV52WlSiiz68OgNLLDDg -c /etc/kafka/server.properties
+
+-Tạo nơi kafka ghi log thay vì mặc định và giới hạn bộ nhớ JavaHeap: 
+	sudo mkdir -p /etc/systemd/system/confluent-server.service.d
+	cat <<EOF | sudo tee /etc/systemd/system/confluent-server.service.d/override.conf
+	[Service]
+	Environment="LOG_DIR=/data/apps/logs"
+	Environment="KAFKA_HEAP_OPTS=-Xms2G -Xmx2G"
+	EOF
+- Reload và start Kafka
+	sudo systemctl daemon-reexec
+	sudo systemctl daemon-reload
+-Đã test và chạy xong Controller
+
+Step 2: Đến tạo Broker Cluster:
+- Chuẩn bị thư mục
+sudo mkdir -p /data /data/apps/logs /data/apps/kafka/data
+sudo chown -R cp-kafka:cp-kafka /data
+
+-Tạo server.properties cho broker (sao cho trùng ip máy ảo ở trên)
+
