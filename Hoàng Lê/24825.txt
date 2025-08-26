@@ -27,3 +27,60 @@ SCOREID                                |ACTORID                                |
 |stSQL.MovieDB.Score.Key"},"payload":{"S|                                       |                                       |                                       |                                       |
 |coreID":1}}      
 
+3. Tạo Stream cho database và bảng mới 
+ksql> CREATE STREAM Diem_full (
+>  BEFORE STRUCT<
+>    ID_Diem STRING,
+>    Diem_Toan INT,
+>    Diem_Van INT,
+>    Diem_Anh INT
+>  >,
+>  AFTER STRUCT<
+>    ID_Diem STRING,
+>    Diem_Toan INT,
+>    Diem_Van INT,
+>    Diem_Anh INT
+>  >,
+>  SOURCE STRUCT<
+>    VERSION STRING,
+>    `CONNECTOR` STRING,
+>    NAME STRING,
+>    TS_MS BIGINT,
+>    SNAPSHOT STRING,
+>    DB STRING,
+>   `TABLE` STRING
+>  >,
+>  OP STRING,
+>  TS_MS BIGINT
+>) WITH (
+>  KAFKA_TOPIC = 'T.Human1.Diem',
+>  VALUE_FORMAT = 'JSON'
+>);
+Tạo Stream chỉ chứa dữ liệu after
+CREATE STREAM Diem AS
+>  SELECT
+>    AFTER->ID_Diem     AS ID_Diem,
+>    AFTER->Diem_Toan   AS Diem_Toan,
+>    AFTER->Diem_Van    AS Diem_Van,
+>    AFTER->Diem_Anh    AS Diem_Anh
+>  FROM Diem_full
+>  EMIT CHANGES;
+Tạo table 
+CREATE TABLE Diem_TB AS
+>  SELECT
+>    AFTER->ID_Diem     AS ID_Diem,
+>    LATEST_BY_OFFSET(AFTER->Diem_Toan) AS Diem_Toan,
+>    LATEST_BY_OFFSET(AFTER->Diem_Van)  AS Diem_Van,
+>    LATEST_BY_OFFSET(AFTER->Diem_Anh)  AS Diem_Anh
+>  FROM Diem_full
+>  GROUP BY AFTER->ID_Diem
+>  EMIT CHANGES;
+ksql> select * from DIEM_TB emit changes;
++----------------------------------+----------------------------------+----------------------------------+----------------------------------+
+|ID_DIEM                           |DIEM_TOAN                         |DIEM_VAN                          |DIEM_ANH                          |
++----------------------------------+----------------------------------+----------------------------------+----------------------------------+
+Query terminated
+Vẫn không nhận dữ liệu (đã đổi qua value.converter.schema.enable=false)
+- Connector đã tạo topic cho bảng và nhận đủ message
+
+
