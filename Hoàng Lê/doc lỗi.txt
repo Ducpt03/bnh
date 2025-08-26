@@ -1,0 +1,8 @@
+1. Lỗi ksql
+1.1 Trao nhầm quyền file 
+trao nhầm file properties
+ 1042  chown -R cp-ksql /etc/ksqldb/ksql-server.properties
+trao đúng
+ 1052  chown -R cp-ksql:confluent /var/lib/kafka-streams/
+1.2 Tạo stream rồi before after dữ liệu
+!Note: Tên stream thường để dạng giống với topic
