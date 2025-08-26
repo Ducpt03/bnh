@@ -1,0 +1,55 @@
+install requirement:
+install java 17
+sudo apt install openjdk-17-jdk -y
+
+Note: có thể gặp lỗi không nhận java có thể thiết lập biến môi trường JAVA_HOME
+
+Tìm đường dẫn Java: readlink -f $(which java) | sed "s:bin/java::"
+Thêm vào file cấu hình: sudo nano /etc/environment
+Thêm dòng: JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+Sau đó load lại: source /etc/environment
+kiểm tra lại: echo $JAVA_HOME
+
+
+Install confluent platform
+
+	Make a directory to store the Confluent public key used to sign Confluent packages in the APT repository: sudo mkdir -p /etc/apt/keyrings
+
+	Download and install the Confluent public key: wget -qO - https://packages.confluent.io/deb/8.0/archive.key | gpg \ --dearmor | sudo tee /etc/apt/keyrings/confluent.gpg > /dev/null
+
+	Use the following command to add the Confluent Platform and client repositories: 	
+
+		CP_DIST=$(focal_release -cs)
+		echo "Types: deb
+		URIs: https://packages.confluent.io/deb/8.0
+		Suites: stable
+		Components: main
+		Architectures: $(dpkg --print-architecture)
+		Signed-by: /etc/apt/keyrings/confluent.gpg
+
+		Types: deb
+		URIs: https://packages.confluent.io/clients/deb/
+		Suites: ${CP_DIST}
+		Components: main
+		Architectures: $(dpkg --print-architecture)
+		Signed-By: /etc/apt/keyrings/confluent.gpg" | sudo tee /etc/apt/sources.list.d/confluent-platform.sources > /dev/null
+
+	Update apt-get and install the entire Confluent Platform package:	
+
+	Confluent Platform: sudo apt-get update && sudo apt-get install confluent-platform
+
+	Configure Confluent Platform: 
+
+	Start Confluent Platform:
+
+		Use kafka-storage random-uuid for generate a cluster ID 
+		And format storage for each node in the cluster: kafka-storage format -t q1Sh-9_ISia_zwGINzRvyQ -c etc/kafka/controller.properties
+
+	start Kafka: sudo systemctl start confluent-server
+	Start Schema Registry. sudo systemctl start confluent-schema-registry
+	Start other Confluent Platform components: 
+		Kafka Connect: sudo systemctl start confluent-kafka-connect
+		Confluent REST Proxy: sudo systemctl start confluent-kafka-rest
+		ksqlDB: sudo systemctl start confluent-ksqldb
+
+
