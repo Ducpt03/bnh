@@ -2,3 +2,4 @@ ksql chạy ko lên control-center
 status ra ghi shutdown ksql do xung dot mang mặc dù đã kill con influxd gây xung đột hoặc đổi sang port khác vẫn bị shutdown ko lên control center
 tuy nó bị shutdown nhưng vào ksql vẫn tạo đc stream vẫn show đc
 e đang tìm cách sửa ạ
+em da sua duoc 
