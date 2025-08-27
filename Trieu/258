@@ -27,32 +27,4 @@ CREATE USER IF NOT EXISTS 'debezium'@'%' IDENTIFIED BY 'oracle_4U';
 GRANT SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT
 ON *.* TO 'debezium'@'%';
 FLUSH PRIVILEGES;
-CREATE STREAM customers_stream (
-  id INT KEY,
-  name VARCHAR,
-  email VARCHAR
-) WITH (
-  KAFKA_TOPIC='mysql-server.shopdb.customers',
-  VALUE_FORMAT='JSON'
-);
 
-CREATE STREAM orders_stream (
-  id INT KEY,
-  customer_id INT,
-  amount DOUBLE
-) WITH (
-  KAFKA_TOPIC='mysql-server.shopdb.orders',
-  VALUE_FORMAT='JSON'
-);
-CREATE STREAM joined_stream AS
-SELECT
-    o.order_id AS order_id,
-    o.customer_id,
-    o.amount,
-    c.name,
-    c.email
-FROM orders_stream o
-LEFT JOIN customers_stream c
-WITHIN 30 MINUTES GRACE PERIOD 10 MINUTES
-ON o.customer_id = c.customer_id
-EMIT CHANGES;
