@@ -1,0 +1,27 @@
+*Task4 :Đã xong ✅  
+    sửa file control-center-production.properties 
+    sudo vi  /etc/confluent-control-center/control-center-production.properties
+    đặt lại port
+    bootstrap.servers=10.0.2.15:9092
+    confluent.controlcenter.prometheus.url=http://10.0.2.15:9090
+    confluent.controlcenter.alertmanager.url=http://10.0.2.15:9093
+    mở
+    confluent.controlcenter.internal.topics.replication=1
+    confluent.controlcenter.command.topic.replication=1
+    
+    web lắng nghe
+    confluent.controlcenter.rest.listeners=http://0.0.0.0:9021
+    confluent.controlcenter.advertised.url=http://10.0.2.15:9021
+
+    log vẫn báo 1 số lỗi nhỏ vì chưa cấu hình đầy đủ của bản controlcenter next-gen
+    -CMF / MDS / Alertmanager (port 8080, 9090…). Vì các service này chưa chạy nên TCP connect bị Connection refused, báo lỗi trong log.
+    Nhưng đã mở được webui trên localhost 
+
+    Sau đó lắng nghe từ web bên ngoài:
+    ỏ windowpowershell tạo rule cho Windows Firewall 
+    mở cổng 9021 để các client bên ngoài có thể kết nối TCP và mở cổng 2222, thường dùng cho SSH vào VM
+    New-NetFirewallRule -DisplayName "C3-9021" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9021
+    New-NetFirewallRule -DisplayName "VM-SSH-2222" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 2222
+    đã Cấu hình để có thể truy cập Confluent Control Center từ các máy khác qua mạng LAN
+
+Minh chứng task 4 drive: https://drive.google.com/drive/folders/1zKSj8BPWqv60lmqKMDWsSQ7Agws9KS0u?usp=sharing
