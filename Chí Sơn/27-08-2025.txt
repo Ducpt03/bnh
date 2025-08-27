@@ -2,16 +2,16 @@
     sửa file control-center-production.properties 
     sudo vi  /etc/confluent-control-center/control-center-production.properties
     đặt lại port
-    bootstrap.servers=10.0.2.15:9092
-    confluent.controlcenter.prometheus.url=http://10.0.2.15:9090
-    confluent.controlcenter.alertmanager.url=http://10.0.2.15:9093
+        bootstrap.servers=10.0.2.15:9092
+        confluent.controlcenter.prometheus.url=http://10.0.2.15:9090
+        confluent.controlcenter.alertmanager.url=http://10.0.2.15:9093
     mở
-    confluent.controlcenter.internal.topics.replication=1
-    confluent.controlcenter.command.topic.replication=1
+        confluent.controlcenter.internal.topics.replication=1
+        confluent.controlcenter.command.topic.replication=1
     
     web lắng nghe
-    confluent.controlcenter.rest.listeners=http://0.0.0.0:9021
-    confluent.controlcenter.advertised.url=http://10.0.2.15:9021
+        confluent.controlcenter.rest.listeners=http://0.0.0.0:9021
+        confluent.controlcenter.advertised.url=http://10.0.2.15:9021
 
     log vẫn báo 1 số lỗi nhỏ vì chưa cấu hình đầy đủ của bản controlcenter next-gen
     -CMF / MDS / Alertmanager (port 8080, 9090…). Vì các service này chưa chạy nên TCP connect bị Connection refused, báo lỗi trong log.
@@ -20,8 +20,49 @@
     Sau đó lắng nghe từ web bên ngoài:
     ỏ windowpowershell tạo rule cho Windows Firewall 
     mở cổng 9021 để các client bên ngoài có thể kết nối TCP và mở cổng 2222, thường dùng cho SSH vào VM
-    New-NetFirewallRule -DisplayName "C3-9021" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9021
-    New-NetFirewallRule -DisplayName "VM-SSH-2222" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 2222
+        New-NetFirewallRule -DisplayName "C3-9021" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9021
+        New-NetFirewallRule -DisplayName "VM-SSH-2222" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 2222
     đã Cấu hình để có thể truy cập Confluent Control Center từ các máy khác qua mạng LAN
 
 Minh chứng task 4 drive: https://drive.google.com/drive/folders/1zKSj8BPWqv60lmqKMDWsSQ7Agws9KS0u?usp=sharing
+
+*Task5: Kafka connect
+    sửa cấu hình kafka connect vào đúng bootstrap.servers:
+    sudo vi  /etc/kafka/connect-distributed.properties
+        rest.host.name=0.0.0.0
+        rest.port=8083
+        bootstrap.servers=10.0.2.15:9092
+    sudo systemctl start confluent-kafka-connect
+    check connect: 
+    systemctl status confluent-kafka-connect
+        curl http://127.0.1.1:8083 (hiện tại đang để là 0.0.0.0 nên cổng nào cũng connect đc với 8083)
+        {"version":"8.0.0-ce","commit":"1f2c9d73fc82c5f6","kafka_cluster_id":"E4NV52WlSiiz68OgNLLDDg"}
+    =>đã thông port thành công 
+
+    Giờ plugin Debion 
+        sudo vi  /etc/kafka/connect-distributed.properties 
+        plugin.path=/usr/share/java,/usr/share/confluent-hub-components
+    Dùng Confluent Hub CLI để tải Debezium: MySQL connector:  
+        sudo confluent-hub install debezium/debezium-connector-mysql:latest
+    Ở đây Confluent Hub CLI đang hỏi cài connector vào đâu thì ban đầu cải bản dùng apt-get thì chọn 1 , còn cài .tar.gz thì phải chọn 2
+    sau khi cài xong sẽ ở thư mục: /usr/share/confluent-hub-components/debezium-debezium-connector-mysql
+    sau đó cài JDBC driver cho MySQL 
+        cd /tmp
+        wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-8.4.0.tar.gz
+        sudo cp mysql-connector-j-8.4.0/mysql-connector-j-8.4.0.jar /usr/share/confluent-hub-components/debezium-debezium-connector-mysql/lib/
+    Restart kafka connect + check plugins
+        sudo systemctl restart confluent-kafka-connect
+        curl -s http://127.0.1.1:8083/connector-plugins | jq .
+    Đã thành công cài sinkconnector và debezium :
+        [
+            {
+                "class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+                "type": "sink",
+                "version": "10.8.4"
+            },
+            {
+                "class": "io.debezium.connector.mysql.MySqlConnector",
+                "type": "source",
+                "version": "3.1.2.Final"
+            },
+        ]
