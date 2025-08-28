@@ -1,0 +1,37 @@
+sudo yum install curl which
+  997  sudo rpm --import https://packages.confluent.io/rpm/8.0/archive.key
+  998  cd /etc/yum.repos.d/
+  999  nano confluent.repo
+ 1000  systemctl status confluent
+ 1001  systemctl status confluent-server
+ 1002  systemctl start confluent-server
+ 1003  systemctl status confluent
+ 1004  systemctl start confluent-server
+ 1005  systemctl status  confluent-server
+ 1006  history
+sudo yum autoremove confluent-server
+cd ..
+
+journalctl -u confluent-server -n 50 --no-pager
+  997  cat /etc/kafka/server.properties | grep log.dirs
+  998  KAFKA_CLUSTER_ID=$(kafka-storage random-uuid)
+  999  kafka-storage format --config /etc/kafka/server.properties --cluster-id $KAFKA_CLUSTER_ID
+ 1000  kafka-storage format   --config /etc/kafka/server.properties   --cluster-id $KAFKA_CLUSTER_ID   --standalone
+ 1001  grep log.dirs /etc/kafka/server.properties
+ 1002  systemctl restart confluent-server
+ 1003  systemctl status  confluent-server
+ 1004  journalctl -u confluent-server -n 100 --no-pager | egrep "ERROR|Caused|Exception"
+ 1005  grep -i '^User' /usr/lib/systemd/system/confluent-server.service
+ 1006  sudo chown -R confluent:confluent /tmp/kraft-combined-logs
+ 1007  ps -eo user,pid,comm | grep kafka
+ 1008  cat /usr/lib/systemd/system/confluent-server.service | grep -i User
+ 1009  sudo chown -R cp-kafka:cp-kafka /tmp/kraft-combined-logs
+ 1010  id cp-kafka
+ 1011  sudo groupadd cp-kafka
+ 1012  sudo usermod -g cp-kafka cp-kafka
+ 1013  sudo chown -R cp-kafka:cp-kafka /tmp/kraft-combined-logs
+ 1014  sudo chmod -R 700 /tmp/kraft-combined-logs
+ 1015  sudo systemctl daemon-reload
+ 1016  sudo systemctl restart confluent-server
+ 1017  sudo systemctl status confluent-server
+ 1018  history
