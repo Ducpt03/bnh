@@ -12,7 +12,9 @@
     web lắng nghe
         confluent.controlcenter.rest.listeners=http://0.0.0.0:9021
         confluent.controlcenter.advertised.url=http://10.0.2.15:9021
-
+    start confluent
+    start control-center
+        control-center-start /etc/confluent-control-center/control-center-production.properties
     log vẫn báo 1 số lỗi nhỏ vì chưa cấu hình đầy đủ của bản controlcenter next-gen
     -CMF / MDS / Alertmanager (port 8080, 9090…). Vì các service này chưa chạy nên TCP connect bị Connection refused, báo lỗi trong log.
     Nhưng đã mở được webui trên localhost 

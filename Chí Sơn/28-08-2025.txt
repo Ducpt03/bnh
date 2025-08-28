@@ -1,0 +1,40 @@
+*Task5: Đã xong ✅ Kafka connect
+    Restart lại kafka 
+    sudo systemctl restart confluent-kafka-connect
+    Báo lỗi xung đột thư viện dư thừa khi cài debezium vì kafka core đã có sẵn
+    đầu tiên là JsonConverter và Jackson
+        ERROR Failed to discover Converter in /usr/share/java/confluent-metadata-service: Unable to instantiate JsonConverter: Failed to invoke plugin constructor (org.apache.kafka.connect.runtime.isolation.ReflectionScanner:159)
+        A different class with the same name was previously loaded by Jackson 
+    kiểm tra plugin path
+        ls -l /usr/share/java/confluent-metadata-service  
+    giờ tạo folder để backup nếu có gì xảy ra:
+        sudo mkdir -p /opt/confluent-plugin-backup
+        sudo chown root:root /opt/confluent-plugin-backup
+        sudo chmod 700 /opt/confluent-plugin-backup
+    chuyển các file json và jackson ra thư mục backup nếu có gì còn lấy lại đc
+        sudo mv /usr/share/java/confluent-metadata-service/jackson* /opt/confluent-plugin-backup/ 2>/dev/null || true
+        sudo mv /usr/share/java/confluent-metadata-service/json* /opt/confluent-plugin-backup/ 2>/dev/null || true
+    check lại xem còn ko
+        ls -l /usr/share/java/confluent-metadata-service
+    rồi restart lại kafka và đã thành công ở port 
+        curl http://127.0.1.1:8083/
+        {"version":"8.0.0-ce","commit":"1f2c9d73fc82c5f6","kafka_cluster_id":"E4NV52WlSiiz68OgNLLDDg"}
+
+*Task6: Đã xong ✅ Cấu hình ksql
+    sửa file ksql properties và đặt các dòng như sau
+    vi /etc/ksqldb/ksql-server.properties
+        bootstrap.servers=PLAINTEXT://10.0.2.15:9092
+        listeners=http://0.0.0.0:8088
+        ksql.service.id=ksql_service_01
+    start ksql
+        sudo systemctl start confluent-ksqldbksql> 
+        ksql http://10.0.2.15:8088
+
+        SHOW TOPICS;
+        Kafka Topic                        | Partitions | Partition Replicas
+        ----------------------------------------------------------------------
+        hello-world                        | 1          | 1
+        ksql_service_01ksql_processing_log | 1          | 1
+        ----------------------------------------------------------------------
+    đã thành công kết nối ksql với broker
+

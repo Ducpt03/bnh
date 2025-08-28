@@ -46,7 +46,7 @@ Chạy lại confluent
     --topic hello-world
     >Xin cahof (cái này bị đần khi gửi tin ko xóa được)
     
-    kafka-console-consumer \\
+    kafka-console-consumer \
     --bootstrap-server 10.0.2.15:9092 \
     --topic hello-world \
     --from-beginning
