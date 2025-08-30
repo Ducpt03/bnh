@@ -1,0 +1,29 @@
+Task 3: chạy và test confluent server
+--- Tạo  topic
+kafka-topics --create --bootstrap-server localhost:9092 --topic hello-world --partitions 1 --replication-factor 1
+--- produce message vào topic
+kafka-console-producer --broker-list localhost:9092 --topic hello-world
+--- consume message từ topic
+kafka-console-consumer --bootstrap-server localhost:9092 --topic hello-world --from-beginning
+
+confluent.metrics.topic.replication=1
+confluent.monitoring.interceptor.topic.replication = 3
+Task 4: Cấu hình Control Center
+wget https://packages.confluent.io/confluent-control-center-next-gen/archive/confluent-control-center-next-gen-2.2.0.tar.gz
+tar -xvf confluent-control-center-next-gen-2.2.0.tar.gz
+cd confluent-control-center-next-gen-2.2.0
+export C3_HOME=`pwd`
+Bật 3 tab terminal 
+tab1: 
+mở etc/confluent-control-center/prometheus-generated.yml sửa localhost:9093 thành localhost:9098
+bin/prometheus-start
+tab2: 
+export ALERTMANAGER_PORT=9098
+bin/alertmanager-start
+tab3:
+mở etc/confluent-control-center/control-center-dev.properties
+sửa confluent.controlcenter.alertmanager.url=http://localhost:9098
+confluent.controlcenter.rest.listeners=http://0.0.0.0:9021
+confluent.controlcenter.advertised.url=http://localhost:9021
+restart confluent-server
+bin/control-center-start etc/confluent-control-center/control-center-dev.properties
