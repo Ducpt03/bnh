@@ -37,3 +37,7 @@ Cấu hình connector sau config:
     "value.converter.schemas.enable": "false"
   }
 }
+!!!!!!!!!đã sửa!!!!!!!!!!!!
+đổi topic prefic khác 
+
+
