@@ -83,4 +83,9 @@ Query terminated
 Vẫn không nhận dữ liệu (đã đổi qua value.converter.schema.enable=false)
 - Connector đã tạo topic cho bảng và nhận đủ message
 
+!!!!!!!!!!!!!!ĐCM CUỘC ĐỜI ĐÃ SỬA ĐƯỢC!!!!!!!!!!!
+unwrap dữ liệu 
+auto.offset.reset='earliest'
+NHƯNG KHÔNG SINK ĐƯỢC VÌ THIẾU SCHEMA
+nếu không unwrap dữ liệu sẽ là null
 
