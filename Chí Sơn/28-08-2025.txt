@@ -1,5 +1,5 @@
 *Task5: Đã xong ✅ Kafka connect
-    Restart lại kafka 
+    Restart lại kafka connect
     sudo systemctl restart confluent-kafka-connect
     Báo lỗi xung đột thư viện dư thừa khi cài debezium vì kafka core đã có sẵn
     đầu tiên là JsonConverter và Jackson
