@@ -84,8 +84,40 @@ Vẫn không nhận dữ liệu (đã đổi qua value.converter.schema.enable=f
 - Connector đã tạo topic cho bảng và nhận đủ message
 
 !!!!!!!!!!!!!!ĐCM CUỘC ĐỜI ĐÃ SỬA ĐƯỢC!!!!!!!!!!!
+CÁI NÀY QUAN TRỌNG VÃI CẢ LỒN ----------> SET 'auto.offset.reset'='earliest'; <--------------- CÁI NÀY QUAN TRỌNG VÃI CẢ LỒN
 unwrap dữ liệu 
 auto.offset.reset='earliest'
 NHƯNG KHÔNG SINK ĐƯỢC VÌ THIẾU SCHEMA
 nếu không unwrap dữ liệu sẽ là null
 
+!!!!!!!!!!!!!!!!!!!!SỬA KIỂU KHÁC VẪN GIỮ CHEMA!!!!!!!!!!!!!!!!!!!!!!!
+unwrap nhưng "schema.enable": "true"
+@@@@Tạo stream chứa toàn bộ source và schema:@@@@
+CREATE STREAM diem2_src (
+>    schema STRUCT<
+>        type STRING,
+>        fields ARRAY<STRUCT<type STRING, optional BOOLEAN, field STRING>>,
+>        optional BOOLEAN,
+>        name STRING
+>    >,
+>    payload STRUCT<
+>        ID INT,
+>        Diem_Toan INT,
+>        Diem_Van INT,
+>        Diem_Anh INT,
+>        __deleted STRING
+>    >
+>) WITH (
+>    KAFKA_TOPIC='X1.Human1.Diem',
+>    VALUE_FORMAT='JSON'
+>);
+
+@@@Tạo stream đọc dữ liệu payload từ source:@@@
+CREATE STREAM diem2 AS
+>SELECT
+>    payload->ID AS ID,
+>    payload->Diem_Toan AS Diem_Toan,
+>    payload->Diem_Van AS Diem_Van,
+>    payload->Diem_Anh AS Diem_Anh
+>FROM diem2_src
+>EMIT CHANGES;
