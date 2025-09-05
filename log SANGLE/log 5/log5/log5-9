@@ -1,0 +1,27 @@
+xuất hiện lỗi khi tạo 2 stream customer và order nhưng chỉ nhận được bảng customer không nhận được bảng order
+-> bảng order chứa cột total_amount có data type decimal nhưng khi lên message thì nó chuyển sang dạng chuỗi vì vậy ksql không thể map thực tiếp thành decimal
+{"order_id":152,"customer_id":21,"total_amount":"AST4","__deleted":"false"} -> total_amount đãng ra phải dạng số thập phânlỗi khi tạo 2 stream customer và order nhưng chỉ nhận được bảng customer không nhận được bảng order
+-> bảng order chứa cột total_amount có data type decimal nhưng khi lên message thì nó chuyển sang dạng chuỗi vì vậy ksql không thể map thực tiếp thành decimal
+{"order_id":152,"customer_id":21,"total_amount":"AST4","__deleted":"false"} -> total_amount đãng ra phải dạng số thập phân kiểu kiểu vậy
+cách xử lý tham khảo được:
+1. đọc total_amount dạng string trong json:
+CREATE STREAM orders_raw (
+  order_id INT,
+  customer_id INT,
+  total_amount STRING,
+  __deleted STRING
+) WITH (
+  KAFKA_TOPIC = 'co.task8.Orders',
+  VALUE_FORMAT = 'JSON'
+);
+2.sử dụng Cast để ép 
+CREATE STREAM orders_stream AS
+SELECT
+  order_id,
+  customer_id,
+  CAST(total_amount AS DECIMAL(12,2)) AS total_amount
+FROM orders_raw
+WHERE __deleted = 'false'
+EMIT CHANGES;
+--> table ksql của order lên dữ liệu nhưng cột total_amount chứa decimal trả giá trị null
+==> chưa sửa được 
