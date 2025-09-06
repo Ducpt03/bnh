@@ -1,0 +1,42 @@
+Lỗi JSON không có chuẩn riêng cho số thập phân chính xác
+em sửa được rồiiiiiiiiiiiiiiiiiiiiiiiiiii 
+1. cơ chế debezium với decimal/numberic (số thập phân)
+khi debezium đọc cột decimal từ mysql nó có nhiều mode để encode:
+ - precise → dùng Kafka Connect logical type Decimal được biểu diển bằng BinInteger -> serialize thành byte array 
+* JSON encode sẽ base64-encode byte array đó -> thành 1 chuỗi base64 trong message kiểu:
+{
+  "order_id": 1,
+  "total amount": "AoE="   // đây thực ra là base64 của byte[]
+} -> Lỗi em đang gặp -> khi không cấu hình thì debezium sẽ để dạng byte được byte được encode  
+ - double → ép DECIMAL thành DOUBLE (có thể mất độ chính xác)
+ - string → giữ nguyên dạng "123.45"
+2. tại sao ksqldb khó đọc decimal trong json 
+- json không có kiểu dữ liệu decimal (hôm nọ em nói nhầm ksql :v) 
+json chỉ định dạng 3 dạng là số nguyên, số thực và chuỗi trong khi đó thì decimal có logical type (p,s) trong đó p là tổng số chữ số còn s là số chữ số sau dấu phẩy
+-> JSON không thể hiện được precision/scale này -> ksqldb bảo chịu 
+3. cách em khắc phục
+trong cái setting connect có phần mục decimal.handling.mode nó chứa 3 value là precise, double và string em đã giải thích 3 cái ở trên 
+Dùng decimal.handling.mode=string trong Debezium
+  sau đóa thì tạo lại stream thoai 
+CREATE STREAM orders_raw (
+  order_id INT,
+  customer_id INT,
+  total_amount STRING
+) WITH (
+  KAFKA_TOPIC = 'orders',
+  VALUE_FORMAT = 'JSON'
+);
+
+CREATE STREAM orders_decimal AS
+  SELECT order_id,
+	 customer_id,
+         CAST(total_amount AS DECIMAL(10,2)) AS total_amount
+  FROM orders_raw
+  EMIT CHANGES;
+thật ra để thử nghiệm em cũng không cần cast đâu nhưng mà dùng cast để sử dụng các toán tử sau này 
+*note: cast dùng để chuyển đổi dữ liệu này sang dữ liệu khác CAST(expression AS target_type) expression cột hoặc giá trị cần chuyển đổi, data_type kiểu dữ liệu muốn chuyển đổi sang 
+ví dụ nếu không cast cái total_amount thì dữ liệu vẫn sẽ là dạng string không thể cộng trừ hay tính toán trên đó nên em để về dạng decimal 
+đầu tiên thì orders_raw sẽ đọc dữ liệu trên topic theo format json trên mysql total_amount là decimal nhưng khi vào topic sẽ chuyển thành string nhờ hàm decimal.handling.mode=string
+tiếp theo dựa vào stream orders_raw các cột id kia giữ nguyên còn cột total_amount sẽ chuyển đổi từ string thành decimal 
+-> vấn đề là từ mysql vào connect tạo thành file json nhưng format này không thể định dạng được kiểu dữ liệu logical nên nó sẽ được lưu dưới dạng BinInteger 
+=> chỉ cần chuyển hóa cái dạng logical decimal này bằng hàm decimal.handling.mode chuyển dạng decimal về thành string là json có thể đọc được dữ liệu decimal và lưu lại trong file thành kiểu dữ liệu string
